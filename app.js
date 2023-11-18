@@ -58,52 +58,125 @@
 //     alert.classList.add("d-none")
 // }
 
-const input = document.getElementById("input")
-const btn = document.getElementById("btn")
-const wrapper = document.querySelector(".wrapper")
 
-btn.addEventListener("click", ekranaYazdir)
 
-function ekranaYazdir() {
+
+const input = document.getElementById('input')
+const btn = document.getElementById('btn')
+const wrapper = document.querySelector('.wrapper')
+
+
+btn.addEventListener('click', yeniTodoEkle)
+input.addEventListener('keyup', (e) => {
+    if (e.keyCode == 13) {
+        yeniTodoEkle()
+    }
+})
+function titleGuncelle(todos) {
+    let yapılmayan = []
+    for (let i of todos) {
+        if (i.isCompleted == false) {
+            yapılmayan.push(i)
+        }
+    }
+    document.title = `Yapman gereken ${yapılmayan.length} şey var`
+}
+function sayfaIlkAcıldıgında() {
+    if (localStorage.getItem('yapilacaklar')) {
+        let todos = JSON.parse(localStorage.getItem('yapilacaklar'))
+        for (let i of todos) {
+            yazdir(i)
+        }
+        titleGuncelle(todos)
+
+
+    } else {
+        localStorage.setItem('yapilacaklar', '[]')
+    }
+}
+sayfaIlkAcıldıgında()
+
+function yeniTodoEkle() {
+
     if (input.value.trim() != '') {
-        const kapsayici = document.createElement("div")
-        kapsayici.classList.add("d-flex", "justify-content-between", "p-3", "border", "border-1", "border-black", "m-2", "rounded")
-        const p = document.createElement("p")
-        p.classList.add("m-0")
-        p.textContent = input.value
-        const divIcon = document.createElement("div")
+        let yapilacak = {
+            todo: input.value,
+            isCompleted: false
+        }
+        let todos = JSON.parse(localStorage.getItem('yapilacaklar'))
+        todos.push(yapilacak)
 
-        const iconCheck = document.createElement("i")
-        iconCheck.classList.add("bi", "bi-check")
-        iconCheck.addEventListener("click", check)
+        localStorage.setItem('yapilacaklar', JSON.stringify(todos))
 
-
-        const iconDelete = document.createElement("i")
-        iconDelete.classList.add("bi", "bi-trash")
-        iconDelete.addEventListener("click", sil)
-
-        divIcon.append(iconCheck, iconDelete)
-        divIcon.classList.add("d-flex", "gap-2", "align-items-center")
-
-        kapsayici.append(p, divIcon)
-
-        wrapper.append(kapsayici)
-
+        yazdir(yapilacak)
+        titleGuncelle(todos)
 
     }
 
 }
 
-function sil() {
-    let kapsayici = this.parentElement.parentElement
-    kapsayici.remove()
+function yazdir(x) {
+    const kapsayici = document.createElement('div')
+
+    kapsayici.classList.add('d-flex', 'justify-content-between', 'p-3', 'border', 'border-1', 'border-black', 'my-2', 'rounded-2')
+    const p = document.createElement('p')
+    p.textContent = x.todo
+    p.classList.add('m-0')
+    if (x.isCompleted == true) {
+        kapsayici.classList.add('bg-success')
+        p.classList.add('text-white', 'text-decoration-line-through')
+    }
+
+    const divIcon = document.createElement('div')
+
+    const iconCheck = document.createElement("i")
+    iconCheck.classList.add("bi", "bi-check")
+    iconCheck.addEventListener("click", check)
+
+
+    const iconDelete = document.createElement("i")
+    iconDelete.classList.add("bi", "bi-trash")
+    iconDelete.addEventListener("click", sil)
+
+    divIcon.append(iconCheck, iconDelete)
+    divIcon.classList.add('d-flex', 'gap-2', 'align-items-center')
+
+    kapsayici.append(p, divIcon)
+
+    wrapper.append(kapsayici)
+
+    input.value = ''
 }
 
+function sil() {
+    let kapsayici = this.parentElement.parentElement
+    let p = this.parentElement.parentElement.children[0]
+    kapsayici.remove()
+    let todos = JSON.parse(localStorage.getItem('yapilacaklar'))
+    let guncelHal = []
+    for (let i of todos) {
+        if (i.todo != p.textContent) {
+            guncelHal.push(i)
+        }
+    }
+    localStorage.setItem('yapilacaklar', JSON.stringify(guncelHal))
+    titleGuncelle(todos)
+}
 
 function check() {
     let kapsayici = this.parentElement.parentElement
-    kapsayici.classList.toggle("bg-success")
+    kapsayici.classList.toggle('bg-success')
+
     let p = this.parentElement.parentElement.children[0]
-    p.classList.toggle("text-decoration-line-through")
-    p.classList.toggle("text-white")
+    p.classList.toggle('text-decoration-line-through')
+    p.classList.toggle('text-white')
+
+    let todos = JSON.parse(localStorage.getItem('yapilacaklar'))
+    for (let i of todos) {
+        if (i.todo == p.textContent) {
+            i.isCompleted = !i.isCompleted
+        }
+    }
+    localStorage.setItem('yapilacaklar', JSON.stringify(todos))
+    titleGuncelle(todos)
 }
